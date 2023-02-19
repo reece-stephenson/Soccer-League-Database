@@ -1,3 +1,7 @@
+DROP DATABASE SoccerLeague
+
+CREATE DATABASE SoccerLeague
+
 USE [SoccerLeague]
 
 CREATE TABLE [soccerTeams] (
@@ -110,3 +114,22 @@ GO
 
 ALTER TABLE [stadiums] ADD FOREIGN KEY ([countryID]) REFERENCES [countries] ([countryID])
 GO
+
+-- Constraints for soccerTeams table
+-- ALTER TABLE [soccerTeams] ADD CONSTRAINT pkSoccerTeamsTeamID PRIMARY KEY([teamID])
+ALTER TABLE [soccerTeams] ADD CONSTRAINT fkSoccerTeamsStadiumsStadiumID FOREIGN KEY([stadiumID]) REFERENCES [stadiums]([stadiumID])
+ALTER TABLE [soccerTeams] ADD CONSTRAINT unqSoccerTeamsTeamID UNIQUE([teamID])
+ALTER TABLE [soccerTeams] ADD CONSTRAINT chkSoccerTeamsTransferBudget CHECK([transferBudget] < 500000000)
+
+-- Constraints for persons table
+-- ALTER TABLE [persons] ADD CONSTRAINT pkPersonsPersonID PRIMARY KEY([personID])
+ALTER TABLE [persons] ADD CONSTRAINT fkPersonsSoccerTeamsTeamID FOREIGN KEY([teamID]) REFERENCES [soccerTeams]([teamId])
+ALTER TABLE [persons] ADD CONSTRAINT unqPersonsPersonID UNIQUE([personID])
+ALTER TABLE [persons] ADD CONSTRAINT chkPersonsDateOfBirth CHECK([dateOfBirth] < GetDate())
+
+-- Constraints for soccerPlayers table
+-- ALTER TABLE [soccerPlayers] ADD CONSTRAINT pkSoccerPlayersPersonID PRIMARY KEY([personID])
+ALTER TABLE [soccerPlayers] ADD CONSTRAINT unqSoccerPlayersPersonID UNIQUE([personID])
+-- ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkSoccerPlayersHeight CHECK([positionType] = 'Goalkeeper' OR [height] > 190)
+-- ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkSoccerPlayersNumber CHECK([positionType] <> 'Goalkeeper' AND [number] > 1)
+ALTER TABLE [soccerPlayers] ADD CONSTRAINT defSoccerPlayersPrefferedFoot DEFAULT 'Right' FOR [preferredFoot]
