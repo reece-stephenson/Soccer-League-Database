@@ -125,6 +125,7 @@ GO
 ALTER TABLE [soccerOwners] ADD FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
 GO
 
+////
 ALTER TABLE [teamMatches] ADD FOREIGN KEY ([matchID]) REFERENCES [soccerMatches] ([matchID])
 ALTER TABLE [teamMatches] ADD FOREIGN KEY ([teamID]) REFERENCES [soccerTeams] ([teamID])
 GO
@@ -134,3 +135,22 @@ GO
 
 ALTER TABLE [stadiums] ADD FOREIGN KEY ([countryID]) REFERENCES [countries] ([countryID])
 GO
+////
+--Constraints for TeamMatches
+ALTER TABLE [teamMatches] ADD CONSTRAINT fkMatchID FOREIGN KEY([matchID]) REFERENCES [soccerMatches]([matchID])
+ALTER TABLE [teamMatches] ADD CONSTRAINT fkTeamID FOREIGN KEY([teamID]) REFERENCES [soccerTeams]([teamID])
+ALTER TABLE [teamMatches] ADD CONSTRAINT checkResult CHECK([result] in ('draw','win','loss'))
+GO
+
+--Constraints for soccerMatches
+ALTER TABLE [soccerMatches] ADD CONSTRAINT fkStadiumID FOREIGN KEY([stadiumID]) REFERENCES [stadiums]([stadiumID])
+ALTER TABLE [soccerMatches] ADD CONSTRAINT checkMatchDate CHECK(DATEDIFF(year,[date],GETDATE())<=100)
+
+
+--Constraints for stadiums
+ALTER TABLE [stadiums] ADD CONSTRAINT checkcapacity CHECK([capacity]>=0)
+ALTER TABLE [stadiums] ADD CONSTRAINT fkCountryID FOREIGN KEY([countryID]) REFERENCES countries([countryID])
+GO
+
+--Constraints for countries
+ALTER TABLE [countries] ADD CONSTRAINT unqCountryName UNIQUE([name])
