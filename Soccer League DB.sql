@@ -63,7 +63,7 @@ GO
 
 CREATE TABLE [soccerMatches] (
   [matchID] int PRIMARY KEY IDENTITY(1, 1),
-  [stadium] int,
+  [stadiumID] int,
   [date] datetime
 )
 GO
@@ -84,22 +84,25 @@ GO
 
 -- For use within the soccerPlayers chkNoSameNumberOnTeam constraint
 CREATE FUNCTION funSameTeamSameNumber(
-  @newPlayerNumber INT
+  @newPlayerNumber INT,
   @newTeamID INT
 ) 
 RETURNS BOOLEAN 
 AS BEGIN
-  IF EXISTS (SELECT * FROM [soccerPlayers] WHERE [playerNumber] = @newPlayerNumber AND [teamID] = @newTeamID)
+  DECLARE @Res BIT 
+  IF EXISTS (SELECT [soccerPlayers].[personID] FROM [soccerPlayers] 
+  LEFT JOIN [persons] ON [soccerPlayers].[personID] = [persons].[personID] 
+  WHERE [soccerPlayers].[number] = @newPlayerNumber AND [persons].[teamID] = @newTeamID)
   BEGIN
+    SET @Res=1
   END
-    RETURN FALSE
   ELSE
   BEGIN
-    RETURN TRUE
+    SET @Res=0
   END
+  RETURN @Res
 END
 GO
-
 
 -- Constraints for soccerTeams table
 ALTER TABLE [soccerTeams] ADD FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
@@ -119,7 +122,7 @@ ALTER TABLE [soccerPlayers] ADD FOREIGN KEY ([personID]) REFERENCES [persons] ([
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT unqSoccerPlayersPersonID UNIQUE([personID])
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkSoccerPlayersHeight CHECK(([positionType] = 'Goalkeeper' AND [height] > 190) OR ([positionType] != 'Goalkeeper'))
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkSoccerPlayersNumber CHECK(([positionType] = 'Goalkeeper') OR ([number] > 1))
-ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkNoSameNumberOnTeam CHECK(funSameTeamSameNumber([number], [teamID]))
+ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkNoSameNumberOnTeam CHECK(funSameTeamSameNumber([number], [teamID])=(1))
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT defSoccerPlayersPrefferedFoot DEFAULT 'Right' FOR [preferredFoot]
 -- Constraint for not having a soccer player with the same number in the same team?
 GO
@@ -147,7 +150,7 @@ ALTER TABLE [teamMatches] ADD CONSTRAINT chkResult CHECK([result] in ('Draw','Wi
 GO
 
 --Constraints for soccerMatches
-ALTER TABLE [soccerMatches] ADD FOREIGN KEY ([stadium]) REFERENCES [stadiums] ([stadiumID])
+ALTER TABLE [soccerMatches] ADD FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
 ALTER TABLE [soccerMatches] ADD CONSTRAINT chkMatchDate CHECK([date] <= GetDate())
 GO
 
