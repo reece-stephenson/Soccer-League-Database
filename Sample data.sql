@@ -68,7 +68,8 @@ VALUES
 ('Randburg Rams FC',17,170000000),
 ('Edenvale Elephants FC',18,160000000),
 ('Grahamstown Giraffes FC',19,80000000),
-('Windsor Whales FC',20,70000000)
+('Windsor Whales FC',20,70000000),
+('Lenasia Lions FC',4,20000000)
 GO
 
 INSERT INTO dbo.persons
