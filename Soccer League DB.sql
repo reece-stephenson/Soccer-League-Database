@@ -16,7 +16,7 @@ CREATE TABLE [persons] (
   [personID] int PRIMARY KEY IDENTITY(1, 1),
   [firstName] nvarchar(255),
   [surname] nvarchar(255),
-  [dateOfBirth] datetime,
+  [dateOfBirth] date,
   [representingCountry] int,
   [teamID] int
 )
