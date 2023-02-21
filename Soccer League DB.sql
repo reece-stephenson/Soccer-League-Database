@@ -104,6 +104,21 @@ AS BEGIN
 END
 GO
 
+--View for matches
+CREATE VIEW vMatches
+AS
+(
+SELECT ISNULL(t1.teamID,t2.teamID) AS teamID,ISNULL(t1.WIN, 0) AS Win, ISNULL(t2.LOSS, 0) AS Loss
+FROM     (SELECT teamID, COUNT(teamID) AS WIN
+                  FROM      teamMatches
+                  WHERE   (result = 'win')GROUP BY teamID) t1 FULL OUTER JOIN
+                      (SELECT teamID, COUNT(teamID) AS LOSS
+                       FROM      teamMatches
+                       WHERE   (result = 'loss')
+                      GROUP BY teamID) t2 ON t1.teamID = t2.teamID WHERE t1.teamID IS NOT NULL OR t2.teamID IS NOT NULL
+ORDER BY WIN DESC OFFSET 0 ROWS)
+GO
+
 -- Constraints for soccerTeams table
 ALTER TABLE [soccerTeams] ADD FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
 ALTER TABLE [soccerTeams] ADD CONSTRAINT unqSoccerTeamsTeamID UNIQUE([teamID])
