@@ -35,8 +35,7 @@ GO
 CREATE TABLE [soccerManagers] (
   [personID] int PRIMARY KEY,
   [trophiesWon] int,
-  [matchesManaged] int,
-  [pointsPerMatch] int
+  [matchesManaged] int
 )
 GO
 
@@ -82,31 +81,6 @@ CREATE TABLE [countries] (
 )
 GO
 
-
--- For use within the soccerPlayers chkNoSameNumberOnTeam constraint
-CREATE FUNCTION funSameTeamSameNumber(
-  @newPersonID INT,
-  @newPlayerNumber INT
-) 
-RETURNS BIT
-AS BEGIN
-  DECLARE @Res BIT, @teamID INT
-
-  SET @teamID = dbo.funFindTeam(@newPersonID)
-  IF EXISTS (SELECT [soccerPlayers].[personID] FROM [soccerPlayers] 
-  LEFT JOIN [persons] ON [soccerPlayers].[personID] = [persons].[personID]
-  WHERE [soccerPlayers].[number] = @newPlayerNumber)
-  BEGIN
-    SET @Res=1
-  END
-  ELSE
-  BEGIN
-    SET @Res=0
-  END
-  RETURN @Res
-END
-GO
-
 -- For getting the teamID of a person
 CREATE FUNCTION funFindTeam(
   @personID INT
@@ -117,6 +91,30 @@ AS BEGIN
   SELECT @teamID = [teamID] FROM [persons] WHERE [personID] = @personID
 
   RETURN @teamID
+END
+GO
+
+-- For use within the soccerPlayers chkNoSameNumberOnTeam constraint
+CREATE FUNCTION funSameTeamSameNumber(
+  @newPersonID INT,
+  @newPlayerNumber INT
+) 
+RETURNS BIT
+AS BEGIN
+  DECLARE @Res BIT, @teamID INT
+
+  SELECT @teamID = dbo.funFindTeam(@newPersonID)
+  IF EXISTS (SELECT [soccerPlayers].[personID] FROM [soccerPlayers] 
+  LEFT JOIN [persons] ON [soccerPlayers].[personID] = [persons].[personID]
+  WHERE [soccerPlayers].[number] = @newPlayerNumber AND [persons].[teamID] = @teamID)
+  BEGIN
+    SET @Res=1
+  END
+  ELSE
+  BEGIN
+    SET @Res=0
+  END
+  RETURN @Res
 END
 GO
 
@@ -168,7 +166,7 @@ ALTER TABLE [soccerPlayers] ADD FOREIGN KEY ([personID]) REFERENCES [persons] ([
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT unqSoccerPlayersPersonID UNIQUE([personID])
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkSoccerPlayersHeight CHECK(([positionType] = 'Goalkeeper' AND [height] > 190) OR ([positionType] != 'Goalkeeper'))
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkSoccerPlayersNumber CHECK(([positionType] = 'Goalkeeper') OR ([number] > 1))
-ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkNoSameNumberOnTeam CHECK([dbo].funSameTeamSameNumber([number], [teamID])=(1))
+ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkNoSameNumberOnTeam CHECK([dbo].funSameTeamSameNumber([personID], [number])=(1))
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT defSoccerPlayersPrefferedFoot DEFAULT 'Right' FOR [preferredFoot]
 -- Constraint for not having a soccer player with the same number in the same team?
 GO
