@@ -1,13 +1,13 @@
-# Soccer-League-Database
+# Soccer-League-Database :soccer:
 A Database project for the BBD Database Levelup
 
 ## Authors
 
 Reece Stephenson
-[reece-stephenson](https://github.com/reece-stephenson)
+[(@reece-stephenson)](https://github.com/reece-stephenson)
 
 Palesa Mpe
-[Palesa-Mpe](https://github.com/Palesa-Mpe)
+[(@Palesa-Mpe)](https://github.com/Palesa-Mpe)
 
 Nicholas Joannou
-[NicholasJoannouBBD](https://github.com/NicholasJoannouBBD)
+[(@NicholasJoannouBBD)](https://github.com/NicholasJoannouBBD)
