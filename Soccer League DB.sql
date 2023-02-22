@@ -104,6 +104,36 @@ AS BEGIN
 END
 GO
 
+--For use within the teamMatches chkMatchID constraint
+CREATE FUNCTION udfMatchCount(
+@matchID int
+)
+RETURNS int
+AS
+BEGIN
+declare @matchCount int
+
+SELECT @matchCount = COUNT(matchID)  FROM teamMatches WHERE matchID=@matchID
+
+RETURN @matchCount
+END
+GO
+
+--View for matches
+CREATE VIEW vMatches
+AS
+(
+SELECT ISNULL(t1.teamID,t2.teamID) AS teamID,ISNULL(t1.WIN, 0) AS Win, ISNULL(t2.LOSS, 0) AS Loss
+FROM     (SELECT teamID, COUNT(teamID) AS WIN
+                  FROM      teamMatches
+                  WHERE   (result = 'win')GROUP BY teamID) t1 FULL OUTER JOIN
+                      (SELECT teamID, COUNT(teamID) AS LOSS
+                       FROM      teamMatches
+                       WHERE   (result = 'loss')
+                      GROUP BY teamID) t2 ON t1.teamID = t2.teamID WHERE t1.teamID IS NOT NULL OR t2.teamID IS NOT NULL
+ORDER BY WIN DESC OFFSET 0 ROWS)
+GO
+
 -- Constraints for soccerTeams table
 ALTER TABLE [soccerTeams] ADD FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
 ALTER TABLE [soccerTeams] ADD CONSTRAINT unqSoccerTeamsTeamID UNIQUE([teamID])
@@ -147,6 +177,7 @@ GO
 ALTER TABLE [teamMatches] ADD FOREIGN KEY ([matchID]) REFERENCES [soccerMatches] ([matchID])
 ALTER TABLE [teamMatches] ADD FOREIGN KEY ([teamID]) REFERENCES [soccerTeams] ([teamID])
 ALTER TABLE [teamMatches] ADD CONSTRAINT chkResult CHECK([result] in ('Draw','Win','Loss'))
+ALTER TABLE [teamMatches] ADD CONSTRAINT chkMatchID CHECK(dbo.udfMatchCount([matchID])<=2)
 GO
 
 --Constraints for soccerMatches
