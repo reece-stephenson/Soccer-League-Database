@@ -1,5 +1,3 @@
-DROP DATABASE SoccerLeague
-
 CREATE DATABASE SoccerLeague
 
 USE [SoccerLeague]
@@ -24,11 +22,11 @@ GO
 
 CREATE TABLE [soccerPlayers] (
   [personID] int PRIMARY KEY,
-  [positionType] nvarchar(255),
+  [positionType] nvarchar(10),
   [number] int,
   [transferValue] int,
   [height] int,
-  [preferredFoot] nvarchar(255)
+  [preferredFoot] nvarchar(5)
 )
 GO
 
@@ -41,7 +39,7 @@ GO
 
 CREATE TABLE [soccerCoaches] (
   [personID] int PRIMARY KEY,
-  [coachType] nvarchar(255),
+  [coachType] nvarchar(10),
   [yearsExperience] int
 )
 GO
@@ -55,7 +53,7 @@ GO
 CREATE TABLE [teamMatches] (
   [matchID] int,
   [teamID] int,
-  [result] nvarchar(255),
+  [result] nvarchar(5),
   PRIMARY KEY ([matchID], [teamID])
 )
 GO
