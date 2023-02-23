@@ -318,6 +318,48 @@ BEGIN
 END
 GO  
 
+CREATE PROCEDURE [dbo].[procAddMatchOutcomes]
+@stadiumID int,
+@date datetime,
+@teamId1 int,
+@teamId2 int, 
+@isDraw bit
+AS
+BEGIN
+DECLARE @matchID int
+
+	INSERT INTO [dbo].[soccerMatches]
+	(stadiumID,date) VALUES (@stadiumID,@date)
+	SET @matchID = @@IDENTITY
+
+	IF (@isDraw = 1)
+	BEGIN   
+	INSERT INTO [dbo].teamMatches
+	(matchID,teamID,result)
+	VALUES
+	(@matchID,@teamId1,'draw')
+
+	INSERT INTO [dbo].teamMatches
+	(matchID,teamID,result)
+	VALUES
+	(@matchID,@teamId2,'draw')
+	END
+	ELSE
+	BEGIN
+	INSERT INTO [dbo].teamMatches
+	(matchID,teamID,result)
+	VALUES
+	(@matchID,@teamId1,'win')
+
+		INSERT INTO [dbo].teamMatches
+	(matchID,teamID,result)
+	VALUES
+	(@matchID,@teamId2,'loss')
+	END
+END
+GO
+
+
   -- Constraints for soccerTeams table
   ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [fkSoccerTeams] FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
   ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [unqSoccerTeamsTeamID] UNIQUE([teamID])
