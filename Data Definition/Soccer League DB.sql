@@ -153,7 +153,7 @@ DECLARE @transferBudget int, @transferValue int
 SELECT @transferBudget = transferBudget FROM [dbo].[soccerTeams] WHERE [teamID]= @TeamID
 SELECT @transferValue = transferValue FROM [dbo].[soccerPlayers] WHERE [personID]=@PersonID
 BEGIN
-IF (dbo.funFindTeam(@PersonID)!=@TeamID)
+IF (dbo.udfFindTeam(@PersonID)!=@TeamID)
 BEGIN
 IF @transferBudget >= @transferValue
   BEGIN
