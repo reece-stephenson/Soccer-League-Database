@@ -147,6 +147,33 @@ FROM     (SELECT teamID, COUNT(teamID) AS WIN
 ORDER BY WIN DESC OFFSET 0 ROWS)
 GO
 
+-- Stored procedure for performing a transfer
+CREATE PROCEDURE [dbo].[procTransfer]
+@PersonID int,
+@TeamID int,
+@ChosenNumber int
+AS
+DECLARE @transferBudget int, @transferValue int
+SELECT @transferBudget = transferBudget FROM [dbo].[soccerTeams] WHERE [teamID]= @TeamID
+SELECT @transferValue = transferValue FROM [dbo].[soccerPlayers] WHERE [personID]=@PersonID
+BEGIN
+  IF @transferBudget >= @transferValue
+  BEGIN
+    UPDATE [dbo].[soccerTeams]
+    SET [transferBudget] = @transferBudget-@transferValue
+    WHERE [teamID] = @TeamID
+
+    UPDATE dbo.persons
+    SET [teamID] = @TeamID
+    WHERE [personID] =@PersonID
+
+    UPDATE [dbo].[soccerPlayers]
+    SET [number]=@ChosenNumber
+    WHERE [personID] = @PersonID
+  END
+END
+GO
+
 -- Constraints for soccerTeams table
 ALTER TABLE [soccerTeams] ADD FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
 ALTER TABLE [soccerTeams] ADD CONSTRAINT unqSoccerTeamsTeamID UNIQUE([teamID])
