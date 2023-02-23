@@ -293,6 +293,31 @@ BEGIN
 END
 GO
 
+-- Stored procedure for creating a coach 
+CREATE PROCEDURE [dbo].[procCreateCoach]
+@FirstNameCoach nvarchar(255),
+@SurnameCoach nvarchar(255),
+@DateOfBirthCoach date,
+@RepresentingCountryCoach int,
+@TeamIDCoach int,
+@coachType nvarchar(10),
+@yearsExperience int
+AS
+BEGIN
+	EXEC [dbo].[procCreatePerson]
+	@FirstName = @FirstNameCoach,
+	@Surname = @SurnameCoach,
+	@DateOfBirth = @DateOfBirthCoach,
+	@RepresentingCountry = @RepresentingCountryCoach,
+	@TeamID = @TeamIDCoach
+
+	INSERT INTO [dbo].[soccerCoaches]
+	(personID,coachType,yearsExperience)
+	VALUES
+	(@@IDENTITY,@coachType,@yearsExperience)
+END
+GO  
+
   -- Constraints for soccerTeams table
   ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [fkSoccerTeams] FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
   ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [unqSoccerTeamsTeamID] UNIQUE([teamID])
