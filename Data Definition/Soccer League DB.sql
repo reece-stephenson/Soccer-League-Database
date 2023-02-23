@@ -102,7 +102,7 @@ RETURNS bit
 AS BEGIN
   DECLARE @Res bit, @teamID int
 
-  SELECT @teamID = [dbo].udfFindTeam(@newPersonID)
+  SELECT @teamID = dbo.udfFindTeam(@newPersonID)
   IF EXISTS (SELECT [soccerPlayers].[personID] FROM [soccerPlayers] 
   LEFT JOIN [persons] ON [soccerPlayers].[personID] = [persons].[personID]
   WHERE [soccerPlayers].[number] = @newPlayerNumber AND [persons].[teamID] = @teamID)
@@ -314,7 +314,7 @@ ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [fkSoccerPlayers] FOREIGN KEY (
 ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [unqSoccerPlayersPersonID] UNIQUE([personID])
 ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkSoccerPlayersHeight] CHECK(([positionType] = 'Goalkeeper' AND [height] > 190) OR ([positionType] != 'Goalkeeper'))
 ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkSoccerPlayersNumber] CHECK(([positionType] = 'Goalkeeper') OR ([number] > 1))
-ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkNoSameNumberOnTeam] CHECK([dbo].udfSameTeamSameNumber([personID], [number])=1)
+ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkNoSameNumberOnTeam] CHECK(dbo.udfSameTeamSameNumber([personID], [number])=1)
 ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [defSoccerPlayersPrefferedFoot] DEFAULT 'Right' FOR [preferredFoot]
 GO
 
@@ -342,7 +342,7 @@ ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [fkTeamID] FOREIGN KEY ([teamID])
 ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [chkResult] CHECK([result] in ('Draw','Win','Loss'))
 ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [chkMatchID] CHECK(dbo.udfMatchCount([matchID])<=2)
 GO
-
+ 
 --Constraints for soccerMatches
 ALTER TABLE [dbo].[soccerMatches] ADD CONSTRAINT [fkSoccerMatches] FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
 ALTER TABLE [dbo].[soccerMatches] ADD CONSTRAINT [chkMatchDate] CHECK([date] <= GetDate())
