@@ -80,57 +80,56 @@ CREATE TABLE [dbo].[countries] (
 )
 GO
 
-  -- For getting the teamID of a person
-  CREATE FUNCTION udfFindTeam(
-    @personID INT
-  ) 
-  RETURNS INT
-  AS BEGIN
-    DECLARE @teamID INT
-    SELECT @teamID = [teamID] FROM [persons] WHERE [personID] = @personID
+-- For getting the teamID of a person
+CREATE FUNCTION udfFindTeam(
+  @personID int
+) 
+RETURNS int
+AS BEGIN
+  DECLARE @teamID int
+  SELECT @teamID = [teamID] FROM [persons] WHERE [personID] = @personID
 
-    RETURN @teamID
-  END
-  GO
+  RETURN @teamID
+END
+GO
 
-  -- For use within the soccerPlayers chkNoSameNumberOnTeam constraint
-  CREATE FUNCTION udfSameTeamSameNumber(
-    @newPersonID INT,
-    @newPlayerNumber INT
-  ) 
-  RETURNS BIT
-  AS BEGIN
-    DECLARE @Res BIT, @teamID INT
+-- For use within the soccerPlayers chkNoSameNumberOnTeam constraint
+CREATE FUNCTION udfSameTeamSameNumber(
+  @newPersonID int,
+  @newPlayerNumber int
+) 
+RETURNS bit
+AS BEGIN
+  DECLARE @Res bit, @teamID int
 
-    SELECT @teamID = [dbo].udfFindTeam(@newPersonID)
-    IF EXISTS (SELECT [soccerPlayers].[personID] FROM [soccerPlayers] 
-    LEFT JOIN [persons] ON [soccerPlayers].[personID] = [persons].[personID]
-    WHERE [soccerPlayers].[number] = @newPlayerNumber AND [persons].[teamID] = @teamID)
-    BEGIN
-      SET @Res=1
-    END
-    ELSE
-    BEGIN
-      SET @Res=0
-    END
-    RETURN @Res
-  END
-  GO
-
-  --For use within the teamMatches chkMatchID constraint
-  CREATE FUNCTION udfMatchCount(
-  @matchID int
-  )
-  RETURNS int
-  AS
+  SELECT @teamID = [dbo].udfFindTeam(@newPersonID)
+  IF EXISTS (SELECT [soccerPlayers].[personID] FROM [soccerPlayers] 
+  LEFT JOIN [persons] ON [soccerPlayers].[personID] = [persons].[personID]
+  WHERE [soccerPlayers].[number] = @newPlayerNumber AND [persons].[teamID] = @teamID)
   BEGIN
-  declare @matchCount int
+    SET @Res=1
+  END
+  ELSE
+  BEGIN
+    SET @Res=0
+  END
+  RETURN @Res
+END
+GO
+
+--For use within the teamMatches chkMatchID constraint
+CREATE FUNCTION udfMatchCount(
+@matchID int
+)
+RETURNS int
+AS BEGIN
+  DECLARE @matchCount int
 
   SELECT @matchCount = COUNT(matchID)  FROM teamMatches WHERE matchID=@matchID
 
   RETURN @matchCount
-  END
-  GO
+END
+GO
 
 --View for matches
 CREATE VIEW vMatches
@@ -272,7 +271,7 @@ BEGIN
 END
 GO
 
---procedure for managers
+-- Stored procedure creating a manager
 CREATE PROCEDURE [dbo].[procManagers]
 @FirstNameManager nvarchar(255),
 @SurnameManager nvarchar(255),
