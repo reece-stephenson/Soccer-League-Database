@@ -157,7 +157,9 @@ DECLARE @transferBudget int, @transferValue int
 SELECT @transferBudget = transferBudget FROM [dbo].[soccerTeams] WHERE [teamID]= @TeamID
 SELECT @transferValue = transferValue FROM [dbo].[soccerPlayers] WHERE [personID]=@PersonID
 BEGIN
-  IF @transferBudget >= @transferValue
+IF (dbo.funFindTeam(@PersonID)!=@TeamID)
+BEGIN
+IF @transferBudget >= @transferValue
   BEGIN
     UPDATE [dbo].[soccerTeams]
     SET [transferBudget] = @transferBudget-@transferValue
@@ -171,6 +173,17 @@ BEGIN
     SET [number]=@ChosenNumber
     WHERE [personID] = @PersonID
   END
+   ELSE
+  BEGIN
+  RAISERROR ('NOT ENOUGH FUNDS',16,1)
+  END
+END
+ELSE
+RAISERROR ('CANNOT TRANSFER PLAYER TO SAME TEAM',16,1)
+
+
+
+  
 END
 GO
 
