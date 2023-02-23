@@ -276,7 +276,7 @@ CREATE PROCEDURE [dbo].[procManagers]
 @RepresentingCountryManager int,
 @TeamIDManager int,
 @TrophiesWon int,
-@matchesManaged int,
+@matchesManaged int
 AS
 BEGIN
 	EXEC [dbo].[procCreatePerson]
@@ -284,7 +284,7 @@ BEGIN
 	@Surname = @SurnameManager,
 	@DateOfBirth = @DateOfBirthManager,
 	@RepresentingCountry = @RepresentingCountryManager,
-	@TeamID = @TeamIDManager,
+	@TeamID = @TeamIDManager
 
 	INSERT INTO [dbo].soccerManagers
 	(personID,trophiesWon,matchesManaged)
