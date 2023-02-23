@@ -98,9 +98,9 @@ CREATE FUNCTION udfSameTeamSameNumber(
   @newPersonID int,
   @newPlayerNumber int
 ) 
-RETURNS bit
+RETURNS BIT
 AS BEGIN
-  DECLARE @Res bit, @teamID int
+  DECLARE @Res BIT, @teamID int
 
   SELECT @teamID = dbo.udfFindTeam(@newPersonID)
   IF EXISTS (SELECT [soccerPlayers].[personID] FROM [soccerPlayers] 
