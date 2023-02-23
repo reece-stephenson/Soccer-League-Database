@@ -1,4 +1,5 @@
 CREATE DATABASE SoccerLeague
+GO
 
 USE [SoccerLeague]
 
@@ -101,7 +102,7 @@ RETURNS BIT
 AS BEGIN
   DECLARE @Res BIT, @teamID INT
 
-  SELECT @teamID = dbo.funFindTeam(@newPersonID)
+  SELECT @teamID = [dbo].funFindTeam(@newPersonID)
   IF EXISTS (SELECT [soccerPlayers].[personID] FROM [soccerPlayers] 
   LEFT JOIN [persons] ON [soccerPlayers].[personID] = [persons].[personID]
   WHERE [soccerPlayers].[number] = @newPlayerNumber AND [persons].[teamID] = @teamID)
@@ -164,7 +165,7 @@ ALTER TABLE [soccerPlayers] ADD FOREIGN KEY ([personID]) REFERENCES [persons] ([
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT unqSoccerPlayersPersonID UNIQUE([personID])
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkSoccerPlayersHeight CHECK(([positionType] = 'Goalkeeper' AND [height] > 190) OR ([positionType] != 'Goalkeeper'))
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkSoccerPlayersNumber CHECK(([positionType] = 'Goalkeeper') OR ([number] > 1))
-ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkNoSameNumberOnTeam CHECK([dbo].funSameTeamSameNumber([personID], [number])=(1))
+ALTER TABLE [soccerPlayers] ADD CONSTRAINT chkNoSameNumberOnTeam CHECK([dbo].funSameTeamSameNumber([personID], [number])=(0))
 ALTER TABLE [soccerPlayers] ADD CONSTRAINT defSoccerPlayersPrefferedFoot DEFAULT 'Right' FOR [preferredFoot]
 -- Constraint for not having a soccer player with the same number in the same team?
 GO
