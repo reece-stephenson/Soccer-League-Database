@@ -180,10 +180,95 @@ IF @transferBudget >= @transferValue
 END
 ELSE
 RAISERROR ('CANNOT TRANSFER PLAYER TO SAME TEAM',16,1)
+END
+GO
 
+-- Stored procedure for updating player information
+CREATE PROCEDURE [dbo].[updatePlayerInformation]
+@PersonID int = NULL,
+@PositionType nvarchar(10) = NULL,
+@Number int = NULL,
+@TransferValue int = NULL
+AS
+BEGIN
+IF @PersonID IS NULL
+	BEGIN
+	  RAISERROR('PersonID must be inputed',11,1)
+	END
+ELSE
+BEGIN
+	UPDATE [dbo].[soccerPlayers]
+	SET [number]= ISNULL(@Number,[number]), [positionType]= ISNULL(@PositionType,[positionType]), [transferValue]= ISNULL(@TransferValue,[transferValue])
+	WHERE [personID] = @PersonID
+END
+END
+GO
 
+-- Stored procedure for creating a person
+CREATE PROCEDURE [dbo].[procCreatePerson]
+@FirstName nvarchar(255),
+@Surname nvarchar(255),
+@DateOfBirth date,
+@RepresentingCountry int,
+@TeamID int
+AS
+BEGIN
+	INSERT INTO [dbo].[persons]
+	(firstName,surname,dateOfBirth,representingCountry,teamID)
+	VALUES
+	(@FirstName,@Surname,@DateOfBirth,@RepresentingCountry,@TeamID)
+END
+GO
 
-  
+-- Stored procedure for creating a player
+CREATE PROCEDURE [dbo].[procCreatePlayer]
+@FirstNamePlayer nvarchar(255),
+@SurnamePlayer nvarchar(255),
+@DateOfBirthPlayer date,
+@RepresentingCountryPlayer int,
+@TeamIDPlayer int,
+@PositionType nvarchar(10),
+@Number int,
+@TransferValue int,
+@Height int,
+@PreferredFoot nvarchar(255)
+AS
+BEGIN
+	EXEC [dbo].[procCreatePerson]
+	@FirstName = @FirstNamePlayer,
+	@Surname = @SurnamePlayer,
+	@DateOfBirth = @DateOfBirthPlayer,
+	@RepresentingCountry = @RepresentingCountryPlayer,
+	@TeamID = @TeamIDPlayer
+
+	INSERT INTO [dbo].[soccerPlayers]
+	(personID,positionType,number,transferValue,height,preferredFoot)
+	VALUES
+	(@@IDENTITY,@PositionType,@Number,@TransferValue,@Height,@PreferredFoot)
+END
+GO
+
+-- Stored procedure for creating a owner 
+CREATE PROCEDURE [dbo].[procCreateOwner]
+@FirstNameOwner nvarchar(255),
+@SurnameOwner nvarchar(255),
+@DateOfBirthOwner date,
+@RepresentingCountryOwner int,
+@TeamIDOwner int,
+@NetWorth int
+AS
+BEGIN
+	EXEC [dbo].[procCreatePerson]
+	@FirstName = @FirstNameOwner,
+	@Surname = @SurnameOwner,
+	@DateOfBirth = @DateOfBirthOwner,
+	@RepresentingCountry = @RepresentingCountryOwner,
+	@TeamID = @TeamIDOwner
+
+	INSERT INTO [dbo].[soccerOwners]
+	(personID,netWorth)
+	VALUES
+	(@@IDENTITY,@NetWorth)
 END
 GO
 
