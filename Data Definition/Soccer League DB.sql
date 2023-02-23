@@ -272,6 +272,31 @@ BEGIN
 END
 GO
 
+--procedure for managers
+CREATE PROCEDURE [dbo].[procManagers]
+@FirstNameManager nvarchar(255),
+@SurnameManager nvarchar(255),
+@DateOfBirthManager date,
+@RepresentingCountryManager int,
+@TeamIDManager int,
+@TrophiesWon int,
+@matchesManaged int,
+AS
+BEGIN
+	EXEC [dbo].[procCreatePerson]
+	@FirstName = @FirstNameManager,
+	@Surname = @SurnameManager,
+	@DateOfBirth = @DateOfBirthManager,
+	@RepresentingCountry = @RepresentingCountryManager,
+	@TeamID = @TeamIDManager,
+
+	INSERT INTO [dbo].soccerManagers
+	(personID,trophiesWon,matchesManaged)
+	VALUES
+	(@@IDENTITY,@TrophiesWon,@matchesManaged)
+END
+GO
+
   -- Constraints for soccerTeams table
   ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [fkSoccerTeams] FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
   ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [unqSoccerTeamsTeamID] UNIQUE([teamID])
