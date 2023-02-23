@@ -135,15 +135,12 @@ GO
 CREATE VIEW vMatches
 AS
 (
-SELECT ISNULL(t1.teamID,t2.teamID) AS teamID,ISNULL(t1.WIN, 0) AS Win, ISNULL(t2.LOSS, 0) AS Loss
-FROM     (SELECT teamID, COUNT(teamID) AS WIN
-                  FROM      teamMatches
-                  WHERE   (result = 'win')GROUP BY teamID) t1 FULL OUTER JOIN
-                      (SELECT teamID, COUNT(teamID) AS LOSS
-                       FROM      teamMatches
-                       WHERE   (result = 'loss')
-                      GROUP BY teamID) t2 ON t1.teamID = t2.teamID WHERE t1.teamID IS NOT NULL OR t2.teamID IS NOT NULL
-ORDER BY WIN DESC OFFSET 0 ROWS)
+SELECT teamID,
+SUM(CASE WHEN result = 'Win' THEN 1 ELSE 0 END) AS Win,
+SUM(CASE WHEN result = 'Loss' THEN 1 ELSE 0 END) AS Loss,
+SUM(CASE WHEN result = 'Draw' THEN 1 ELSE 0 END) AS Draw
+FROM teamMatches
+GROUP BY teamID)
 GO
 
 -- Stored procedure for performing a transfer
@@ -271,43 +268,43 @@ BEGIN
 END
 GO
 
--- Stored procedure for creating a owner 
-CREATE PROCEDURE [dbo].[procCreateCoach]
-@FirstNameCoach nvarchar(255),
-@SurnameCoach nvarchar(255),
-@DateOfBirthCoach date,
-@RepresentingCountryCoach int,
-@TeamIDCoach int,
-@coachType nvarchar(10),
-@yearsExperience int
+-- Stored procedure creating a manager
+CREATE PROCEDURE [dbo].[procManagers]
+@FirstNameManager nvarchar(255),
+@SurnameManager nvarchar(255),
+@DateOfBirthManager date,
+@RepresentingCountryManager int,
+@TeamIDManager int,
+@TrophiesWon int,
+@matchesManaged int,
 AS
 BEGIN
 	EXEC [dbo].[procCreatePerson]
-	@FirstName = @FirstNameCoach,
-	@Surname = @SurnameCoach,
-	@DateOfBirth = @DateOfBirthCoach,
-	@RepresentingCountry = @RepresentingCountryCoach,
-	@TeamID = @TeamIDCoach
+	@FirstName = @FirstNameManager,
+	@Surname = @SurnameManager,
+	@DateOfBirth = @DateOfBirthManager,
+	@RepresentingCountry = @RepresentingCountryManager,
+	@TeamID = @TeamIDManager,
 
-	INSERT INTO [dbo].[soccerCoaches]
-	(personID,coachType,yearsExperience)
+	INSERT INTO [dbo].soccerManagers
+	(personID,trophiesWon,matchesManaged)
 	VALUES
-	(@@IDENTITY,@coachType,@yearsExperience)
+	(@@IDENTITY,@TrophiesWon,@matchesManaged)
 END
-GO  
-
--- Constraints for soccerTeams table
-ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [fkSoccerTeams] FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
-ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [unqSoccerTeamsTeamID] UNIQUE([teamID])
-ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [chkSoccerTeamsTransferBudget] CHECK([transferBudget] < 500000000)
 GO
 
--- Constraints for persons table
-ALTER TABLE [dbo].[persons] ADD CONSTRAINT [fkPersonsCountry] FOREIGN KEY ([representingCountry]) REFERENCES [countries] ([countryID])
-ALTER TABLE [dbo].[persons] ADD CONSTRAINT [fkPersonsTeam] FOREIGN KEY ([teamID]) REFERENCES [soccerTeams] ([teamID])
-ALTER TABLE [dbo].[persons] ADD CONSTRAINT [unqPersonsPersonID] UNIQUE([personID])
-ALTER TABLE [dbo].[persons] ADD CONSTRAINT [chkPersonsDateOfBirth] CHECK([dateOfBirth] <= GetDate())
-GO
+  -- Constraints for soccerTeams table
+  ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [fkSoccerTeams] FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
+  ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [unqSoccerTeamsTeamID] UNIQUE([teamID])
+  ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [chkSoccerTeamsTransferBudget] CHECK([transferBudget] < 500000000)
+  GO
+
+  -- Constraints for persons table
+  ALTER TABLE [dbo].[persons] ADD CONSTRAINT [fkPersonsCountry] FOREIGN KEY ([representingCountry]) REFERENCES [countries] ([countryID])
+  ALTER TABLE [dbo].[persons] ADD CONSTRAINT [fkPersonsTeam] FOREIGN KEY ([teamID]) REFERENCES [soccerTeams] ([teamID])
+  ALTER TABLE [dbo].[persons] ADD CONSTRAINT [unqPersonsPersonID] UNIQUE([personID])
+  ALTER TABLE [dbo].[persons] ADD CONSTRAINT [chkPersonsDateOfBirth] CHECK([dateOfBirth] <= GetDate())
+  GO
 
 -- Constraints for soccerPlayers table
 ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [fkSoccerPlayers] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
@@ -318,23 +315,23 @@ ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkNoSameNumberOnTeam] CHECK(d
 ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [defSoccerPlayersPrefferedFoot] DEFAULT 'Right' FOR [preferredFoot]
 GO
 
--- Constraints for soccerManagers table
-ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [fkSoccerManagers] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
-ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [defTrophiesWon] DEFAULT 0 FOR [trophiesWon]
-ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [defMatchesManaged] DEFAULT 0 FOR [matchesManaged]
-ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [chkPositiveNumberTrophies] CHECK ([trophiesWon] >= 0)
-ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [chkPositiveMatchesManaged] CHECK ([matchesManaged] >= 0)
-GO
+  -- Constraints for soccerManagers table
+  ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [fkSoccerManagers] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
+  ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [defTrophiesWon] DEFAULT 0 FOR [trophiesWon]
+  ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [defMatchesManaged] DEFAULT 0 FOR [matchesManaged]
+  ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [chkPositiveNumberTrophies] CHECK ([trophiesWon] >= 0)
+  ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [chkPositiveMatchesManaged] CHECK ([matchesManaged] >= 0)
+  GO
 
--- Constraints for soccerCoaches table
-ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [fkSoccerCoaches] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
-ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [chkCoachTypes] CHECK([coachType] in ('Goalkeeper', 'Defender', 'Midfielder', 'Attacker'))
-ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [chkPositiveYearsExperience] CHECK ([yearsExperience] >= 0)
-GO
+  -- Constraints for soccerCoaches table
+  ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [fkSoccerCoaches] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
+  ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [chkCoachTypes] CHECK([coachType] in ('Goalkeeper', 'Defender', 'Midfielder', 'Attacker'))
+  ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [chkPositiveYearsExperience] CHECK ([yearsExperience] >= 0)
+  GO
 
--- Constraints for soccerOwners table
-ALTER TABLE [dbo].[soccerOwners] ADD CONSTRAINT [fkSoccerOwners] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
-GO
+  -- Constraints for soccerOwners table
+  ALTER TABLE [dbo].[soccerOwners] ADD CONSTRAINT [fkSoccerOwners] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
+  GO
 
 --Constraints for teamMatches
 ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [fkTeamMatch] FOREIGN KEY ([matchID]) REFERENCES [soccerMatches] ([matchID])
@@ -348,10 +345,10 @@ ALTER TABLE [dbo].[soccerMatches] ADD CONSTRAINT [fkSoccerMatches] FOREIGN KEY (
 ALTER TABLE [dbo].[soccerMatches] ADD CONSTRAINT [chkMatchDate] CHECK([date] <= GetDate())
 GO
 
---Constraints for stadiums
-ALTER TABLE [dbo].[stadiums] ADD CONSTRAINT [fkStadiums] FOREIGN KEY ([countryID]) REFERENCES [countries] ([countryID])
-ALTER TABLE [dbo].[stadiums] ADD CONSTRAINT [chkcapacity] CHECK([capacity]>=0)
-GO
+  --Constraints for stadiums
+  ALTER TABLE [dbo].[stadiums] ADD CONSTRAINT [fkStadiums] FOREIGN KEY ([countryID]) REFERENCES [countries] ([countryID])
+  ALTER TABLE [dbo].[stadiums] ADD CONSTRAINT [chkcapacity] CHECK([capacity]>=0)
+  GO
 
---Constraints for countries
-ALTER TABLE [dbo].[countries] ADD CONSTRAINT [unqCountryName] UNIQUE([name])
+  --Constraints for countries
+  ALTER TABLE [dbo].[countries] ADD CONSTRAINT [unqCountryName] UNIQUE([name])
