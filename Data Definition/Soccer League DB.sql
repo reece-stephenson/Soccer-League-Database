@@ -132,21 +132,60 @@ GO
   END
   GO
 
-  --View for matches
-  CREATE VIEW vMatches
-  AS
-  (
-  SELECT ISNULL(t1.teamID,t2.teamID) AS teamID,ISNULL(t1.WIN, 0) AS Win, ISNULL(t2.LOSS, 0) AS Loss
-  FROM     (SELECT teamID, COUNT(teamID) AS WIN
-                    FROM      teamMatches
-                    WHERE   (result = 'win')GROUP BY teamID) t1 FULL OUTER JOIN
-                        (SELECT teamID, COUNT(teamID) AS LOSS
-                        FROM      teamMatches
-                        WHERE   (result = 'loss')
-                        GROUP BY teamID) t2 ON t1.teamID = t2.teamID WHERE t1.teamID IS NOT NULL OR t2.teamID IS NOT NULL
-  ORDER BY WIN DESC OFFSET 0 ROWS)
-  GO
+--View for matches
+CREATE VIEW vMatches
+AS
+(
+SELECT ISNULL(t1.teamID,t2.teamID) AS teamID,ISNULL(t1.WIN, 0) AS Win, ISNULL(t2.LOSS, 0) AS Loss
+FROM     (SELECT teamID, COUNT(teamID) AS WIN
+                  FROM      teamMatches
+                  WHERE   (result = 'win')GROUP BY teamID) t1 FULL OUTER JOIN
+                      (SELECT teamID, COUNT(teamID) AS LOSS
+                       FROM      teamMatches
+                       WHERE   (result = 'loss')
+                      GROUP BY teamID) t2 ON t1.teamID = t2.teamID WHERE t1.teamID IS NOT NULL OR t2.teamID IS NOT NULL
+ORDER BY WIN DESC OFFSET 0 ROWS)
+GO
 
+-- Stored procedure for performing a transfer
+CREATE PROCEDURE [dbo].[procTransfer]
+@PersonID int,
+@TeamID int,
+@ChosenNumber int
+AS
+DECLARE @transferBudget int, @transferValue int
+SELECT @transferBudget = transferBudget FROM [dbo].[soccerTeams] WHERE [teamID]= @TeamID
+SELECT @transferValue = transferValue FROM [dbo].[soccerPlayers] WHERE [personID]=@PersonID
+BEGIN
+IF (dbo.funFindTeam(@PersonID)!=@TeamID)
+BEGIN
+IF @transferBudget >= @transferValue
+  BEGIN
+    UPDATE [dbo].[soccerTeams]
+    SET [transferBudget] = @transferBudget-@transferValue
+    WHERE [teamID] = @TeamID
+
+    UPDATE dbo.persons
+    SET [teamID] = @TeamID
+    WHERE [personID] =@PersonID
+
+    UPDATE [dbo].[soccerPlayers]
+    SET [number]=@ChosenNumber
+    WHERE [personID] = @PersonID
+  END
+   ELSE
+  BEGIN
+  RAISERROR ('NOT ENOUGH FUNDS',16,1)
+  END
+END
+ELSE
+RAISERROR ('CANNOT TRANSFER PLAYER TO SAME TEAM',16,1)
+
+
+
+  
+END
+GO
 
   -- Constraints for soccerTeams table
   ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [fkSoccerTeams] FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
