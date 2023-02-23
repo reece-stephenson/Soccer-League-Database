@@ -336,7 +336,6 @@ ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [fkSoccerPlayers] FOREIGN KEY (
 ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [unqSoccerPlayersPersonID] UNIQUE([personID])
 ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkSoccerPlayersHeight] CHECK(([positionType] = 'Goalkeeper' AND [height] > 190) OR ([positionType] != 'Goalkeeper'))
 ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkSoccerPlayersNumber] CHECK(([positionType] = 'Goalkeeper') OR ([number] > 1))
-ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkNoSameNumberOnTeam] CHECK(dbo.udfSameTeamSameNumber([personID], [number])=1)
 ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [defSoccerPlayersPrefferedFoot] DEFAULT 'Right' FOR [preferredFoot]
 GO
 
