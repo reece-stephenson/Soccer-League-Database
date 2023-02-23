@@ -1,7 +1,7 @@
 USE SoccerLeague
 
-INSERT INTO dbo.countries
-(name)
+INSERT INTO [dbo].[countries]
+([name])
 VALUES 
 ('England'),
 ('South Africa'),
@@ -22,8 +22,8 @@ VALUES
 ('Egypt')
 GO
 
-INSERT INTO dbo.stadiums
-(stadiumName,capacity,countryID)
+INSERT INTO [dbo].[stadiums]
+([stadiumName],[capacity],[countryID])
 VALUES
 ('Community Centre',75000,2),
 ('Spectrum Arena',62000,2),
@@ -47,8 +47,8 @@ VALUES
 ('Arrowhead Centre',28000,2)
 GO
 
-INSERT INTO dbo.soccerTeams
-(teamName,stadiumID,transferBudget)
+INSERT INTO [dbo].[soccerTeams]
+([teamName],[stadiumID],[transferBudget])
 VALUES
 ('Joburg Jackals FC',1,450000000),
 ('Cape Cats FC',2,475000000),
@@ -72,8 +72,8 @@ VALUES
 ('Lenasia Lions FC',4,20000000)
 GO
 
-INSERT INTO dbo.persons
-(firstName,surname,dateOfBirth,representingCountry,teamID)
+INSERT INTO [dbo].[persons]
+([firstName],[surname],[dateOfBirth],[representingCountry],[teamID])
 VALUES
 -- Joburg Jackals FC
 ('Antonio', 'Miller','1999-12-13',16,1), --Player
@@ -456,8 +456,8 @@ VALUES
 ('Nico', 'Byers','1968-11-09',5,20)
 GO
 
-INSERT INTO dbo.soccerPlayers
-(personID,positionType,number,transferValue,height,preferredFoot)
+INSERT INTO [dbo].[soccerPlayers]
+([personID],[positionType],[number],[transferValue],[height],[preferredFoot])
 VALUES
 (1,'Goalkeeper',1,300000,195,'Left'),
 (2,'Defender',5,823000,190,'Right'),
@@ -475,7 +475,7 @@ VALUES
 (19, 'Defender',22,26161079,215,'Left'),
 (20, 'Midfielder',51,262708,186,'Right'),
 (21, 'Defender',37,78779302,165,'Left'),
-(22, 'Midfielder',19,54167354,172,'Left'),
+(22, 'Midfielder',82,54167354,172,'Left'),
 (23, 'Attacker',70,58275547,211,'Right'),
 (24, 'Attacker',8,92709194,168,'Left'),
 (25, 'Defender',12,15564835,185,'Right'),
@@ -551,7 +551,7 @@ VALUES
 (125, 'Defender',94,40245229,219,'Right'),
 (126, 'Defender',38,40908444,166,'Right'),
 (127, 'Attacker',73,662015,180,'Right'),
-(128, 'Attacker',76,56917495,188,'Left'),
+(128, 'Attacker',8,56917495,188,'Left'),
 (129, 'Defender',84,44422796,200,'Right'),
 (130, 'Midfielder',76,8438,196,'Left'),
 
@@ -592,7 +592,7 @@ VALUES
 (181, 'Defender',54,31836859,191,'Left'),
 
 (188, 'Goalkeeper',62,94765785,210,'Right'),
-(189, 'Attacker',62,94765785,210,'Right'),
+(189, 'Attacker',64,94765785,210,'Right'),
 (190, 'Defender',92,8677624,167,'Left'),
 (191, 'Defender',88,76017157,205,'Left'),
 (192, 'Attacker',73,18615556,196,'Left'),
@@ -700,8 +700,8 @@ VALUES
 (334, 'Midfielder',7,32614651,215,'Left')
 GO
 
-INSERT INTO dbo.soccerCoaches
-(personID,coachType,yearsExperience)
+INSERT INTO [dbo].[soccerCoaches]
+([personID],[coachType],[yearsExperience])
 VALUES
 (12,'Attacker',5),
 (13,'Midfielder',8),
@@ -804,8 +804,8 @@ VALUES
 (338, 'Goalkeeper',3)
 GO
 
-INSERT INTO dbo.soccerManagers
-(personID,trophiesWon,matchesManaged)
+INSERT INTO [dbo].[soccerManagers]
+([personID],[trophiesWon],[matchesManaged])
 VALUES
 (16, 2, 228),
 (33, 10, 485),
@@ -829,8 +829,8 @@ VALUES
 (339, 5, 322)
 GO
 
-INSERT INTO dbo.soccerOwners
-(personID,netWorth)
+INSERT INTO [dbo].[soccerOwners]
+([personID],[netWorth])
 VALUES 
 (17, 66550498),
 (34, 198693529),
@@ -854,8 +854,8 @@ VALUES
 (340, 771835657)
 GO
 
-INSERT INTO dbo.soccerMatches
-(stadiumID,date)
+INSERT INTO [dbo].[soccerMatches]
+([stadiumID],[date])
 VALUES
 (1,'2023-01-03 12:00:00'),
 (2,'2023-01-03 16:30:00'),
@@ -902,8 +902,8 @@ VALUES
 (11, '2023-01-24 20:00:00')
 GO
 
-INSERT INTO dbo.teamMatches
-(matchID,teamID,result)
+INSERT INTO [dbo].[teamMatches]
+([matchID],[teamID],[result])
 VALUES
 (1,1,'Win'),
 (1,11,'Loss'),
