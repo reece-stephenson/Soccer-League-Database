@@ -80,57 +80,56 @@ CREATE TABLE [dbo].[countries] (
 )
 GO
 
-  -- For getting the teamID of a person
-  CREATE FUNCTION udfFindTeam(
-    @personID INT
-  ) 
-  RETURNS INT
-  AS BEGIN
-    DECLARE @teamID INT
-    SELECT @teamID = [teamID] FROM [persons] WHERE [personID] = @personID
+-- For getting the teamID of a person
+CREATE FUNCTION udfFindTeam(
+  @personID int
+) 
+RETURNS int
+AS BEGIN
+  DECLARE @teamID int
+  SELECT @teamID = [teamID] FROM [persons] WHERE [personID] = @personID
 
-    RETURN @teamID
-  END
-  GO
+  RETURN @teamID
+END
+GO
 
-  -- For use within the soccerPlayers chkNoSameNumberOnTeam constraint
-  CREATE FUNCTION udfSameTeamSameNumber(
-    @newPersonID INT,
-    @newPlayerNumber INT
-  ) 
-  RETURNS BIT
-  AS BEGIN
-    DECLARE @Res BIT, @teamID INT
+-- For use within the soccerPlayers chkNoSameNumberOnTeam constraint
+CREATE FUNCTION udfSameTeamSameNumber(
+  @newPersonID int,
+  @newPlayerNumber int
+) 
+RETURNS bit
+AS BEGIN
+  DECLARE @Res bit, @teamID int
 
-    SELECT @teamID = [dbo].udfFindTeam(@newPersonID)
-    IF EXISTS (SELECT [soccerPlayers].[personID] FROM [soccerPlayers] 
-    LEFT JOIN [persons] ON [soccerPlayers].[personID] = [persons].[personID]
-    WHERE [soccerPlayers].[number] = @newPlayerNumber AND [persons].[teamID] = @teamID)
-    BEGIN
-      SET @Res=1
-    END
-    ELSE
-    BEGIN
-      SET @Res=0
-    END
-    RETURN @Res
-  END
-  GO
-
-  --For use within the teamMatches chkMatchID constraint
-  CREATE FUNCTION udfMatchCount(
-  @matchID int
-  )
-  RETURNS int
-  AS
+  SELECT @teamID = [dbo].udfFindTeam(@newPersonID)
+  IF EXISTS (SELECT [soccerPlayers].[personID] FROM [soccerPlayers] 
+  LEFT JOIN [persons] ON [soccerPlayers].[personID] = [persons].[personID]
+  WHERE [soccerPlayers].[number] = @newPlayerNumber AND [persons].[teamID] = @teamID)
   BEGIN
-  declare @matchCount int
+    SET @Res=1
+  END
+  ELSE
+  BEGIN
+    SET @Res=0
+  END
+  RETURN @Res
+END
+GO
+
+--For use within the teamMatches chkMatchID constraint
+CREATE FUNCTION udfMatchCount(
+@matchID int
+)
+RETURNS int
+AS BEGIN
+  DECLARE @matchCount int
 
   SELECT @matchCount = COUNT(matchID)  FROM teamMatches WHERE matchID=@matchID
 
   RETURN @matchCount
-  END
-  GO
+END
+GO
 
 --View for matches
 CREATE VIEW vMatches
@@ -272,62 +271,87 @@ BEGIN
 END
 GO
 
-  -- Constraints for soccerTeams table
-  ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [fkSoccerTeams] FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
-  ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [unqSoccerTeamsTeamID] UNIQUE([teamID])
-  ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [chkSoccerTeamsTransferBudget] CHECK([transferBudget] < 500000000)
-  GO
+-- Stored procedure for creating a owner 
+CREATE PROCEDURE [dbo].[procCreateCoach]
+@FirstNameCoach nvarchar(255),
+@SurnameCoach nvarchar(255),
+@DateOfBirthCoach date,
+@RepresentingCountryCoach int,
+@TeamIDCoach int,
+@coachType nvarchar(10),
+@yearsExperience int
+AS
+BEGIN
+	EXEC [dbo].[procCreatePerson]
+	@FirstName = @FirstNameCoach,
+	@Surname = @SurnameCoach,
+	@DateOfBirth = @DateOfBirthCoach,
+	@RepresentingCountry = @RepresentingCountryCoach,
+	@TeamID = @TeamIDCoach
 
-  -- Constraints for persons table
-  ALTER TABLE [dbo].[persons] ADD CONSTRAINT [fkPersonsCountry] FOREIGN KEY ([representingCountry]) REFERENCES [countries] ([countryID])
-  ALTER TABLE [dbo].[persons] ADD CONSTRAINT [fkPersonsTeam] FOREIGN KEY ([teamID]) REFERENCES [soccerTeams] ([teamID])
-  ALTER TABLE [dbo].[persons] ADD CONSTRAINT [unqPersonsPersonID] UNIQUE([personID])
-  ALTER TABLE [dbo].[persons] ADD CONSTRAINT [chkPersonsDateOfBirth] CHECK([dateOfBirth] <= GetDate())
-  GO
+	INSERT INTO [dbo].[soccerCoaches]
+	(personID,coachType,yearsExperience)
+	VALUES
+	(@@IDENTITY,@coachType,@yearsExperience)
+END
+GO  
 
-  -- Constraints for soccerPlayers table
-  ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [fkSoccerPlayers] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
-  ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [unqSoccerPlayersPersonID] UNIQUE([personID])
-  ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkSoccerPlayersHeight] CHECK(([positionType] = 'Goalkeeper' AND [height] > 190) OR ([positionType] != 'Goalkeeper'))
-  ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkSoccerPlayersNumber] CHECK(([positionType] = 'Goalkeeper') OR ([number] > 1))
-  ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkNoSameNumberOnTeam] CHECK([dbo].udfSameTeamSameNumber([personID], [number])=1)
-  ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [defSoccerPlayersPrefferedFoot] DEFAULT 'Right' FOR [preferredFoot]
-  GO
+-- Constraints for soccerTeams table
+ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [fkSoccerTeams] FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
+ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [unqSoccerTeamsTeamID] UNIQUE([teamID])
+ALTER TABLE [dbo].[soccerTeams] ADD CONSTRAINT [chkSoccerTeamsTransferBudget] CHECK([transferBudget] < 500000000)
+GO
 
-  -- Constraints for soccerManagers table
-  ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [fkSoccerManagers] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
-  ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [defTrophiesWon] DEFAULT 0 FOR [trophiesWon]
-  ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [defMatchesManaged] DEFAULT 0 FOR [matchesManaged]
-  ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [chkPositiveNumberTrophies] CHECK ([trophiesWon] >= 0)
-  ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [chkPositiveMatchesManaged] CHECK ([matchesManaged] >= 0)
-  GO
+-- Constraints for persons table
+ALTER TABLE [dbo].[persons] ADD CONSTRAINT [fkPersonsCountry] FOREIGN KEY ([representingCountry]) REFERENCES [countries] ([countryID])
+ALTER TABLE [dbo].[persons] ADD CONSTRAINT [fkPersonsTeam] FOREIGN KEY ([teamID]) REFERENCES [soccerTeams] ([teamID])
+ALTER TABLE [dbo].[persons] ADD CONSTRAINT [unqPersonsPersonID] UNIQUE([personID])
+ALTER TABLE [dbo].[persons] ADD CONSTRAINT [chkPersonsDateOfBirth] CHECK([dateOfBirth] <= GetDate())
+GO
 
-  -- Constraints for soccerCoaches table
-  ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [fkSoccerCoaches] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
-  ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [chkCoachTypes] CHECK([coachType] in ('Goalkeeper', 'Defender', 'Midfielder', 'Attacker'))
-  ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [chkPositiveYearsExperience] CHECK ([yearsExperience] >= 0)
-  GO
+-- Constraints for soccerPlayers table
+ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [fkSoccerPlayers] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
+ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [unqSoccerPlayersPersonID] UNIQUE([personID])
+ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkSoccerPlayersHeight] CHECK(([positionType] = 'Goalkeeper' AND [height] > 190) OR ([positionType] != 'Goalkeeper'))
+ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkSoccerPlayersNumber] CHECK(([positionType] = 'Goalkeeper') OR ([number] > 1))
+ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [chkNoSameNumberOnTeam] CHECK([dbo].udfSameTeamSameNumber([personID], [number])=1)
+ALTER TABLE [dbo].[soccerPlayers] ADD CONSTRAINT [defSoccerPlayersPrefferedFoot] DEFAULT 'Right' FOR [preferredFoot]
+GO
 
-  -- Constraints for soccerOwners table
-  ALTER TABLE [dbo].[soccerOwners] ADD CONSTRAINT [fkSoccerOwners] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
-  GO
+-- Constraints for soccerManagers table
+ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [fkSoccerManagers] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
+ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [defTrophiesWon] DEFAULT 0 FOR [trophiesWon]
+ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [defMatchesManaged] DEFAULT 0 FOR [matchesManaged]
+ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [chkPositiveNumberTrophies] CHECK ([trophiesWon] >= 0)
+ALTER TABLE [dbo].[soccerManagers] ADD CONSTRAINT [chkPositiveMatchesManaged] CHECK ([matchesManaged] >= 0)
+GO
 
-  --Constraints for teamMatches
-  ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [fkTeamMatch] FOREIGN KEY ([matchID]) REFERENCES [soccerMatches] ([matchID])
-  ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [fkTeamID] FOREIGN KEY ([teamID]) REFERENCES [soccerTeams] ([teamID])
-  ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [chkResult] CHECK([result] in ('Draw','Win','Loss'))
-  ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [chkMatchID] CHECK(dbo.udfMatchCount([matchID])<=2)
-  GO
+-- Constraints for soccerCoaches table
+ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [fkSoccerCoaches] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
+ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [chkCoachTypes] CHECK([coachType] in ('Goalkeeper', 'Defender', 'Midfielder', 'Attacker'))
+ALTER TABLE [dbo].[soccerCoaches] ADD CONSTRAINT [chkPositiveYearsExperience] CHECK ([yearsExperience] >= 0)
+GO
 
-  --Constraints for soccerMatches
-  ALTER TABLE [dbo].[soccerMatches] ADD CONSTRAINT [fkSoccerMatches] FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
-  ALTER TABLE [dbo].[soccerMatches] ADD CONSTRAINT [chkMatchDate] CHECK([date] <= GetDate())
-  GO
+-- Constraints for soccerOwners table
+ALTER TABLE [dbo].[soccerOwners] ADD CONSTRAINT [fkSoccerOwners] FOREIGN KEY ([personID]) REFERENCES [persons] ([personID])
+GO
 
-  --Constraints for stadiums
-  ALTER TABLE [dbo].[stadiums] ADD CONSTRAINT [fkStadiums] FOREIGN KEY ([countryID]) REFERENCES [countries] ([countryID])
-  ALTER TABLE [dbo].[stadiums] ADD CONSTRAINT [chkcapacity] CHECK([capacity]>=0)
-  GO
+--Constraints for teamMatches
+ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [fkTeamMatch] FOREIGN KEY ([matchID]) REFERENCES [soccerMatches] ([matchID])
+ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [fkTeamID] FOREIGN KEY ([teamID]) REFERENCES [soccerTeams] ([teamID])
+ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [chkResult] CHECK([result] in ('Draw','Win','Loss'))
+ALTER TABLE [dbo].[teamMatches] ADD CONSTRAINT [chkMatchID] CHECK(dbo.udfMatchCount([matchID])<=2)
+GO
 
-  --Constraints for countries
-  ALTER TABLE [dbo].[countries] ADD CONSTRAINT [unqCountryName] UNIQUE([name])
+--Constraints for soccerMatches
+ALTER TABLE [dbo].[soccerMatches] ADD CONSTRAINT [fkSoccerMatches] FOREIGN KEY ([stadiumID]) REFERENCES [stadiums] ([stadiumID])
+ALTER TABLE [dbo].[soccerMatches] ADD CONSTRAINT [chkMatchDate] CHECK([date] <= GetDate())
+GO
+
+--Constraints for stadiums
+ALTER TABLE [dbo].[stadiums] ADD CONSTRAINT [fkStadiums] FOREIGN KEY ([countryID]) REFERENCES [countries] ([countryID])
+ALTER TABLE [dbo].[stadiums] ADD CONSTRAINT [chkcapacity] CHECK([capacity]>=0)
+GO
+
+--Constraints for countries
+ALTER TABLE [dbo].[countries] ADD CONSTRAINT [unqCountryName] UNIQUE([name])
